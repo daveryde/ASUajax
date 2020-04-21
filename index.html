@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Module 5 Case Project</title>
+    <!-- jQuery -->
+    <script src="https://code.jquery.com/jquery-3.5.0.min.js"
+      integrity="sha256-xNzN2a4ltkB44Mc/Jz3pT4iU1cmeR0FkXs4pru/JxaQ=" crossorigin="anonymous"></script>
+    <!-- Semantic UI -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/semantic-ui@2.4.2/dist/semantic.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/semantic-ui@2.4.2/dist/semantic.min.js"></script>
+  </head>
+
+  <body>
+    <div class="ui center aligned grid">
+      <div class="column">
+        <div class="ui basic segment">
+          <div class="ui card middle aligned centered">
+            <div class="content">
+              <div class="header"><a href="https://sv443.net/jokeapi/v2">JokeAPI - V2</a></div>
+            </div>
+            <div class="content">
+              <h4 class="ui sub header">Here's The Joke</h4>
+              <div class="ui small feed">
+                <div class="event">
+                  <div class="content">
+                    <div class="summary" id="joke-category">
+                      <!-- Joke Type -->
+                    </div>
+                  </div>
+                </div>
+                <div class="event">
+                  <div class="content">
+                    <div class="summary description">
+                      <!-- Joke Description -->
+                    </div>
+                  </div>
+                </div>
+                <div class="event">
+                  <div class="content">
+                    <div class="summary delivery">
+                      <!-- Joke Content -->
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="extra content">
+              <button class="ui button primary" id="button">Get Random Joke</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <script>
+      // Global variable
+      var button, jokeCategory, description, content;
+
+      function getElements() {
+        button = document.querySelector('#button');
+        jokeCategory = document.querySelector('#joke-category');
+        description = document.querySelector('.description');
+        delivery = document.querySelector('.delivery');
+      }
+
+      function handleClick() {
+        // Clear previous joke
+        clearDOM();
+
+        // Execute getJoke
+        getJoke();
+      }
+
+      function clearDOM() {
+        if (description) {
+          description.innerHTML = '';
+        }
+
+        else if (delivery) {
+          delivery.innerHTML = '';
+        }
+
+        else if (jokeCategory) {
+          jokeCategory.innerHTML = '';
+        }
+      }
+
+      function init() {
+        // Grab DOM elements on page
+        getElements();
+
+        // Listen for button click
+        button.addEventListener('click', handleClick, false);
+      }
+
+      function getJoke() {
+        // API Optional Configuration
+        var baseURL = "https://sv443.net/jokeapi/v2";
+        var categories = ["Programming"];
+        var params = [
+          "blacklistFlags=nsfw,religious,racist,sexist",
+          "idRange=0-100"
+        ];
+
+        var xhr = new XMLHttpRequest();
+
+        // Reference: https://sv443.net/jokeapi/v2
+        // URL to api with parameters
+        xhr.open("GET", baseURL + "/joke/" + categories.join(",") + "?" + params.join("&"));
+
+        // Example Payload
+        // {
+        //   "formatVersion": 2,
+        //     "category": "Miscellaneous",
+        //       "type": "single",
+        //         "joke": "A horse walks into a bar...",
+        //           "flags": {
+        //     "nsfw": true,
+        //       "religious": false,
+        //         "political": true,
+        //           "racist": false,
+        //             "sexist": false
+        //   }
+        // }
+
+        xhr.onreadystatechange = function () {
+          // readyState 4 means request has finished + we only want to parse the joke if the request was successful (status code lower than 300)
+          if (xhr.readyState == 4 && xhr.status < 300) {
+
+            // Transform json data to string
+            var randomJoke = JSON.parse(xhr.responseText);
+
+            // If type == "single", the joke only has the "joke" property
+            if (randomJoke.type == "single") {
+
+              // Append joke type to DOM
+              jokeCategory.innerHTML += randomJoke.category;
+
+              // Append joke text to DOM
+              description.innerHTML += randomJoke.joke;
+            }
+            else {
+              // Append the joke to DOM elements
+              jokeCategory.innerHTML += randomJoke.category;
+              description.innerHTML += randomJoke.setup;
+              delivery.innerHTML += randomJoke.delivery;
+            }
+          }
+          // readyState 4 but the network response is not in the 200 range
+          else if (xhr.readyState == 4) {
+            delivery.innerHTML += '<p>Error while requesting joke.<br>Status code: ' + xhr.status + '<br>Server response: ' + xhr.responseText;
+          }
+        };
+
+        xhr.send();
+      }
+
+      window.addEventListener('load', init, false);
+    </script>
+  </body>
+
+</html>
